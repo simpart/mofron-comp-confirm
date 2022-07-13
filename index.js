@@ -1,28 +1,32 @@
 /**
- * @file   mofron-comp-confirmdlg/index.js
- * @author simpart
+ * @file mofron-comp-confirm/index.js
+ * @brief confirm component for mofron
+ * @license MIT
  */
-let mf = require('mofron');
-let Text = require('mofron-comp-text');
-let MsgDlg = require('mofron-comp-msgdlg');
-let efCenter = require('mofron-effect-center');
+const Text     = require('mofron-comp-text');
+const Dialog   = require('mofron-comp-dialog'); 
+const OkCancel = require('mofron-comp-okcancel');
+const HrzPos   = require('mofron-effect-hrzpos');
+const comutl   = mofron.util.common;
 
-/**
- * @class mofron.comp.FormDlg
- * @brief confirm dialog component for mofron
- */
-mf.comp.Confirm = class extends MsgDlg {
-    
+module.exports = class extends Dialog {
     /**
      * initialize component
      * 
-     * @param po paramter or option
+     * @param (mixed) string: message text
+     *                key-value: component config
+     * @type private
      */
-    constructor (po) {
+    constructor (p1) {
         try {
             super();
-            this.name('Confirm');
-            this.prmOpt(po);
+            this.modname("Confirm");
+            this.shortForm("text");
+	    
+            /* init config */
+	    if (0 < arguments.length) {
+                this.config(p1);
+            }
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -32,90 +36,135 @@ mf.comp.Confirm = class extends MsgDlg {
     /**
      * initialize dom contents
      * 
-     * @param prm : 
+     * @type private
      */
-    initDomConts (prm) {
+    initDomConts () {
         try {
-            super.initDomConts(prm);
-            super.button()[0].text('Yes');
-            this.addButton('No');
-            
-            /* init callback */
-            this.buttonEvent(
-                (cidx, dlg) => {
-                    try {
-                        let set_ret = null;
-                        if (0 == cidx) {
-                            set_ret = true;
-                        } else if (1 == cidx) {
-                            set_ret = false;
-                        } else {
-                            set_ret = cidx;
-                        }
-                        
-                        let cb = dlg.callback();
-                        if (null !== cb) {
-                            cb[0](set_ret, dlg, cb[1]);
-                        }
-                    } catch (e) {
-                        console.error(e.stack);
-                        throw e;
-                    }
-                }
-            );
+            super.initDomConts();
+            this.frame().header().height('0.3rem');
+
+	    let txt_wrp = new mofron.class.Component({
+	        style: { 'display':'flex', 'align-items':'center' },
+                child: this.text()
+	    });
+            this.child([txt_wrp, this.okcancel()]);
+
+	    let cfm = this;
+	    this.config({
+                fade:200,
+                clickEvent: () => { cfm.visible(false); }
+            });
+	    this.size("4rem","2.3rem");
+	    this.okcancel().width('1rem', '1.2rem');
         } catch (e) {
             console.error(e.stack);
             throw e;
         }
     }
-    
-    button (prm) {
+
+    okEvent (fnc,prm) {
         try {
-            if (undefined === prm) {
-                /* getter */
-                return super.button();
-            }
-            /* setter */
-            if (true !== Array.isArray(prm)) {
-                throw new Error('invalid paramter');
-            }
-            /* update button text */
-            (undefined !== prm[0])? super.button()[0].text(prm[0]) : undefined;
-            (undefined !== prm[1])? super.button()[1].text(prm[1]) : undefined;
-            /* add button */
-            for (let idx=2; idx < prm.length ;idx++) {
-                this.addButton(prm[idx]);
-            }
-        } catch (e) {
+	    let cfm = this;
+            let evt = () => {
+                try {
+                    if ('function' === typeof fnc) {
+                        fnc(cfm,null,prm);
+		    }
+		} catch (e) {
+                    console.error(e.stack);
+                    throw e;
+		}
+	    };
+            this.okcancel().okEvent(evt);
+	} catch (e) {
+            console.error(e.stack);
+	    throw e;
+	}
+    }
+
+    clickEvent (fnc,prm) {
+        try {
+	    let cfm = this;
+	    let evt = (p1,p2) => {
+                try {
+                    if ('function' === typeof fnc) {
+                        fnc(cfm,p2,prm);
+		    }
+		} catch (e) {
+                    console.error(e.stack);
+                    throw e;
+		}
+	    }
+            this.okcancel().clickEvent(evt);
+	} catch (e) {
             console.error(e.stack);
             throw e;
-        }
+	}
     }
     
-    callback (fnc, prm) {
+    /**
+     * button text
+     * 
+     * @param (mixed) string: yes button text
+     *                mofron-comp-text: yes button text component
+     * @param (mixed) string: no button text
+     *                mofron-comp-text: no button text component
+     * @type parameter
+     */
+    okcancel (ok, can) {
         try {
-            if ((undefined === fnc) && (undefined === prm)) {
-                /* getter */
-                return (undefined === this.m_callback) ? null : this.m_callback;
-            }
-            /* setter */
-            if ((undefined !== fnc) && ('function' !== typeof fnc)) {
-                throw new Error('invalid parameter');
-            }
-            if (undefined === this.m_callback) {
-                this.m_callback = new Array(()=>{}, null);
-            }
-            if (undefined !== fnc) {
-                this.m_callback[0] = fnc;
-            }
-            if (undefined !== prm) {
-                this.m_callback[1] = prm;
-            }
-        } catch (e) {
+	    if ('string' === typeof ok) {
+	        this.okcancel().text(ok,can);
+                return;
+	    //} else if (true === comutl.isinc(ok,'OkCancel')) {
+
+	    }
+	    return this.innerComp("okcancel", ok, OkCancel);
+	} catch (e) {
             console.error(e.stack);
             throw e;
-        }
+	}
+    }
+
+    /**
+     * dialog message
+     * 
+     * @param (mixed) string: message text
+     *                mofron-comp-text: text component for message
+     * @param (dict) component config
+     * @type parameter
+     */
+    text (prm, opt) {
+        try {
+            if ("string" === typeof prm) {
+                prm = prm.replace("\n", "<br>");
+                this.text().text(prm);
+                this.text().config(opt);
+                return;
+            } else if (true === comutl.isinc(prm,'Text')) {
+                prm.size('0.2rem');
+		prm.effect(new HrzPos());
+	    }
+            return this.innerComp("text", prm, Text);
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+	}
+    }
+
+    height (prm, cnf) {
+        try {
+            let ret = super.height(prm,cnf);
+            if ((undefined !== prm) && (null !== this.text().parent())) {
+                let wrp_hei = comutl.sizediff(prm, this.frame().header().height());
+		wrp_hei = comutl.sizediff(wrp_hei,'0.6rem');
+		this.text().parent().height(wrp_hei);
+	    }
+	    return ret;
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+	}
     }
 }
-module.exports = mofron.comp.Confirm;
 /* end of file */

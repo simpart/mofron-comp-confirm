@@ -1,13 +1,16 @@
 {
   "name": "mofron-comp-confirm",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "confirm component for mofron",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "mofron-comp-msgdlg" : ""
+    "mofron-comp-text":"",
+    "mofron-comp-dialog":"",
+    "mofron-comp-okcancel":"",
+    "mofron-effect-hrzpos":""
   },
   "repository": {
     "type": "git",
